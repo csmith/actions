@@ -1,0 +1,5 @@
+name: 'Checkout'
+description: 'Checkout a repository'
+runs:
+  using: 'docker'
+  image: 'docker://git.yak-wall.ts.net/public/actions/checkout'
