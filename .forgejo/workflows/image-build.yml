@@ -11,10 +11,18 @@ permissions:
   packages: write
 
 jobs:
-  build:
+  checkout:
     uses: meta/workflows/.forgejo/workflows/image-build.yml@master
     runs-on: docker
     secrets: inherit
     with:
       dockerfile: checkout/Dockerfile
       image: public/actions/checkout
+
+  imagetags:
+    uses: meta/workflows/.forgejo/workflows/image-build.yml@master
+    runs-on: docker
+    secrets: inherit
+    with:
+      dockerfile: imagetags/Dockerfile
+      image: public/actions/imagetags

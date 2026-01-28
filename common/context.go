@@ -1,6 +1,7 @@
 package common
 
 import (
+	"encoding/base64"
 	"fmt"
 	"os"
 )
@@ -12,6 +13,31 @@ type Context struct {
 	Repository string
 	Ref        string
 	SHA        string
+	OutputFile string
+}
+
+func (c *Context) BasicAuth() string {
+	return base64.StdEncoding.EncodeToString(fmt.Appendf(nil, "x-access-token:%s", c.Token))
+}
+
+func (c *Context) RepoUrl() string {
+	return fmt.Sprintf("%s/%s.git", c.ServerURL, c.Repository)
+}
+
+func (c *Context) WriteOutput(m map[string]string) error {
+	f, err := os.OpenFile(c.OutputFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return fmt.Errorf("failed to open output file: %w", err)
+	}
+	defer f.Close()
+
+	for k, v := range m {
+		if _, err := f.WriteString(fmt.Sprintf("%s=%s\n", k, v)); err != nil {
+			return fmt.Errorf("failed to write output: %w", err)
+		}
+	}
+
+	return nil
 }
 
 func ContextFromEnv() (*Context, error) {
@@ -32,6 +58,7 @@ func contextFromEnv(prefix string) (*Context, error) {
 		Repository: lookupEnv(prefix, "REPOSITORY"),
 		Ref:        lookupEnv(prefix, "REF"),
 		SHA:        lookupEnv(prefix, "SHA"),
+		OutputFile: lookupEnv(prefix, "OUTPUT"),
 	}, nil
 }
 
