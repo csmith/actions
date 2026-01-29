@@ -2,7 +2,7 @@ name: 'Checkout'
 description: 'Checkout a repository'
 runs:
   using: 'docker'
-  image: 'docker://forgejo.local:3000/public/actions/checkout'
+  image: 'docker://git.yak-wall.ts.net/public/actions/checkout'
   args:
     - -path=${{ inputs.path }}
 inputs:

@@ -2,7 +2,7 @@ name: 'Docker Build'
 description: 'Build Docker images using buildah'
 runs:
   using: 'docker'
-  image: 'docker://forgejo.local:3000/public/actions/dockerbuild'
+  image: 'docker://git.yak-wall.ts.net/public/actions/dockerbuild'
   args:
     - -dockerfile=${{ inputs.dockerfile }}
     - -context=${{ inputs.context }}
