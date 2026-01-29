@@ -10,6 +10,8 @@ import (
 	"chameth.com/actions/common"
 )
 
+const localImageTag = "dockerpush-image:latest"
+
 func Run(ctx *common.Context, archive, name, tags, authfile string) error {
 	if tags == "" {
 		return fmt.Errorf("tags cannot be empty")
@@ -33,7 +35,16 @@ func Run(ctx *common.Context, archive, name, tags, authfile string) error {
 		"authfile", authfile != "",
 	)
 
-	archivePath := fmt.Sprintf("oci-archive:%s", ctx.ResolvePath(archive))
+	resolvedArchive := ctx.ResolvePath(archive)
+
+	slog.Debug("Loading image from archive", "archive", resolvedArchive)
+	loadArgs := []string{"pull", fmt.Sprintf("oci-archive:%s", resolvedArchive), localImageTag}
+	loadCmd := exec.Command("buildah", loadArgs...)
+	loadCmd.Stdout = os.Stdout
+	loadCmd.Stderr = os.Stderr
+	if err := loadCmd.Run(); err != nil {
+		return fmt.Errorf("buildah pull (from archive) failed: %w", err)
+	}
 
 	for _, tag := range tagList {
 		target := fmt.Sprintf("%s:%s", name, tag)
@@ -47,7 +58,7 @@ func Run(ctx *common.Context, archive, name, tags, authfile string) error {
 			args = append(args, "--authfile", ctx.ResolvePath(authfile))
 		}
 
-		args = append(args, archivePath, target)
+		args = append(args, localImageTag, target)
 
 		cmd := exec.Command("buildah", args...)
 		cmd.Stdout = os.Stdout
