@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	"chameth.com/actions/common"
 	"chameth.com/actions/checkout"
+	"chameth.com/actions/common"
 )
 
 var (
