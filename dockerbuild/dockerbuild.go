@@ -23,6 +23,10 @@ func Run(ctx *common.Context, dockerfile, context, target, authfile string) erro
 		"source_label", sourceLabel,
 		"authfile", authfile != "")
 
+	if err := os.Chdir(contextPath); err != nil {
+		return fmt.Errorf("failed to change to context directory %s: %w", contextPath, err)
+	}
+
 	args := []string{
 		"bud",
 		"--timestamp=0",
@@ -35,9 +39,10 @@ func Run(ctx *common.Context, dockerfile, context, target, authfile string) erro
 		args = append(args, "-f", dockerfile)
 	}
 
-	args = append(args, contextPath)
+	// Use "." as the build context since we're in the context directory
+	args = append(args, ".")
 
-	slog.Debug("Executing buildah build", "args", args)
+	slog.Debug("Executing buildah build", "args", args, "cwd", contextPath)
 	cmd := exec.Command("buildah", args...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -54,7 +59,8 @@ func Run(ctx *common.Context, dockerfile, context, target, authfile string) erro
 	}
 
 	if authfile != "" {
-		pushArgs = append(pushArgs, "--authfile", authfile)
+		authfilePath := ctx.ResolvePath(authfile)
+		pushArgs = append(pushArgs, "--authfile", authfilePath)
 	}
 
 	slog.Debug("Executing buildah push to archive", "args", pushArgs)

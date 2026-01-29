@@ -46,7 +46,7 @@ func Run(ctx *common.Context, archive, name, tags, authfile string) error {
 		}
 
 		if authfile != "" {
-			args = append(args, "--authfile", authfile)
+			args = append(args, "--authfile", ctx.ResolvePath(authfile))
 		}
 
 		cmd := exec.Command("buildah", args...)

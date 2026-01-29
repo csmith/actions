@@ -21,7 +21,7 @@ func Run(ctx *common.Context, registry, username, password, authfile string) err
 		registry,
 		"-u", username,
 		"--password-stdin",
-		"--authfile", authfile,
+		"--authfile", ctx.ResolvePath(authfile),
 	}
 
 	slog.Debug("Executing buildah login", "registry", registry, "username", username, "authfile", authfile)
