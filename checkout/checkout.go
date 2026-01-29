@@ -4,16 +4,19 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 
 	"chameth.com/actions/common"
 )
 
-func Run(ctx *common.Context) error {
-	if err := os.MkdirAll(ctx.Workspace, 0755); err != nil {
+func Run(ctx *common.Context, path string) error {
+	targetDir := filepath.Join(ctx.Workspace, path)
+
+	if err := os.MkdirAll(targetDir, 0755); err != nil {
 		return fmt.Errorf("failed to create workspace: %w", err)
 	}
 
-	if err := os.Chdir(ctx.Workspace); err != nil {
+	if err := os.Chdir(targetDir); err != nil {
 		return fmt.Errorf("failed to change to workspace: %w", err)
 	}
 
@@ -27,5 +30,5 @@ func Run(ctx *common.Context) error {
 		return fmt.Errorf("git checkout failed: %w\n%s", err, output)
 	}
 
-	return nil
+	return ctx.WriteOutput(map[string]string{"path": path})
 }

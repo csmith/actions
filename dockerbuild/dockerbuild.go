@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"strings"
+	"path/filepath"
 
 	"chameth.com/actions/common"
 )
 
-func Run(ctx *common.Context, dockerfile, context string) error {
+const imageTag = "dockerbuild-image:latest"
+
+func Run(ctx *common.Context, dockerfile, context, target string) error {
 	sourceLabel := fmt.Sprintf("%s/%s", ctx.ServerURL, ctx.Repository)
 
 	args := []string{
@@ -17,7 +19,7 @@ func Run(ctx *common.Context, dockerfile, context string) error {
 		"--timestamp=0",
 		"--identity-label=false",
 		"--label", fmt.Sprintf("org.opencontainers.image.source=%s", sourceLabel),
-		"--iidfile", "/tmp/build-iidfile",
+		"--tag", imageTag,
 	}
 
 	if dockerfile != "" {
@@ -34,12 +36,22 @@ func Run(ctx *common.Context, dockerfile, context string) error {
 		return fmt.Errorf("buildah build failed: %w", err)
 	}
 
-	imageID, err := os.ReadFile("/tmp/build-iidfile")
-	if err != nil {
-		return fmt.Errorf("failed to read image ID file: %w", err)
+	targetPath := filepath.Join(ctx.Workspace, target)
+
+	pushArgs := []string{
+		"push",
+		"--format", "oci",
+		imageTag,
+		fmt.Sprintf("oci-archive:%s", targetPath),
 	}
 
-	imageIDStr := strings.TrimSpace(string(imageID))
+	cmd = exec.Command("buildah", pushArgs...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 
-	return ctx.WriteOutput(map[string]string{"imageid": imageIDStr})
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("buildah push failed: %w", err)
+	}
+
+	return ctx.WriteOutput(map[string]string{"image": target})
 }

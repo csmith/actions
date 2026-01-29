@@ -1,11 +1,16 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 
 	"chameth.com/actions/common"
 	"chameth.com/actions/checkout"
+)
+
+var (
+	path = flag.String("path", "src", "Path to checkout to (relative to workspace)")
 )
 
 func main() {
@@ -15,7 +20,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err := checkout.Run(ctx); err != nil {
+	flag.Parse()
+
+	if err := checkout.Run(ctx, *path); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}

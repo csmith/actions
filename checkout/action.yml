@@ -3,3 +3,13 @@ description: 'Checkout a repository'
 runs:
   using: 'docker'
   image: 'docker://git.yak-wall.ts.net/public/actions/checkout'
+  args:
+    - -path=${{ inputs.path }}
+inputs:
+  path:
+    description: 'Path to checkout to (relative to workspace)'
+    required: false
+    default: 'src'
+outputs:
+  path:
+    description: 'The path the repository was checked out to'

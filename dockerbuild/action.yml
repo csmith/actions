@@ -6,6 +6,7 @@ runs:
   args:
     - -dockerfile=${{ inputs.dockerfile }}
     - -context=${{ inputs.context }}
+    - -target=${{ inputs.target }}
 inputs:
   dockerfile:
     description: 'Path to Dockerfile'
@@ -14,7 +15,11 @@ inputs:
   context:
     description: 'Build context path'
     required: false
-    default: '.'
+    default: 'src'
+  target:
+    description: 'Output tar file for the image'
+    required: false
+    default: 'image.tar'
 outputs:
-  imageid:
-    description: 'The built image ID'
+  image:
+    description: 'Path to the exported image tar file'
