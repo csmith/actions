@@ -30,3 +30,9 @@ jobs:
     runs-on: docker
     with:
       dockerfile: dockerlogin/Dockerfile
+
+  dockerpush:
+    uses: meta/workflows/.forgejo/workflows/image-test.yml@master
+    runs-on: docker
+    with:
+      dockerfile: dockerpush/Dockerfile

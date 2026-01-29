@@ -42,3 +42,11 @@ jobs:
     with:
       dockerfile: dockerlogin/Dockerfile
       image: public/actions/dockerlogin
+
+  dockerpush:
+    uses: meta/workflows/.forgejo/workflows/image-build.yml@master
+    runs-on: docker
+    secrets: inherit
+    with:
+      dockerfile: dockerpush/Dockerfile
+      image: public/actions/dockerpush

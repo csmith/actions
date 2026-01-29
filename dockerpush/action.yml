@@ -1,0 +1,24 @@
+name: 'Docker Push'
+description: 'Push Docker images from a tar file to a container registry'
+runs:
+  using: 'docker'
+  image: 'docker://git.yak-wall.ts.net/public/actions/dockerpush'
+  args:
+    - -archive=${{ inputs.archive }}
+    - -name=${{ inputs.name }}
+    - -tags=${{ inputs.tags }}
+    - -authfile=${{ inputs.authfile }}
+inputs:
+  archive:
+    description: 'Path to the image tar file to push'
+    required: true
+  name:
+    description: 'Base image name (e.g., docker.io/username/myimage)'
+    required: true
+  tags:
+    description: 'Comma-separated list of tags to push'
+    required: true
+  authfile:
+    description: 'Path to authentication file'
+    required: false
+    default: '.registry-auth.json'

@@ -4,13 +4,12 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"path/filepath"
 
 	"chameth.com/actions/common"
 )
 
 func Run(ctx *common.Context, path string) error {
-	targetDir := filepath.Join(ctx.Workspace, path)
+	targetDir := ctx.ResolvePath(path)
 
 	if err := os.MkdirAll(targetDir, 0755); err != nil {
 		return fmt.Errorf("failed to create workspace: %w", err)

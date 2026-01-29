@@ -1,0 +1,53 @@
+package dockerpush
+
+import (
+	"fmt"
+	"os"
+	"os/exec"
+	"strings"
+
+	"chameth.com/actions/common"
+)
+
+func Run(ctx *common.Context, archive, name, tags, authfile string) error {
+	if tags == "" {
+		return fmt.Errorf("tags cannot be empty")
+	}
+
+	tagList := strings.Split(tags, ",")
+	for i, tag := range tagList {
+		tagList[i] = strings.TrimSpace(tag)
+	}
+
+	for _, tag := range tagList {
+		if tag == "" {
+			return fmt.Errorf("tags cannot contain empty values")
+		}
+	}
+
+	archivePath := fmt.Sprintf("oci-archive:%s", ctx.ResolvePath(archive))
+
+	for _, tag := range tagList {
+		target := fmt.Sprintf("%s:%s", name, tag)
+
+		args := []string{
+			"push",
+			archivePath,
+			target,
+		}
+
+		if authfile != "" {
+			args = append(args, "--authfile", authfile)
+		}
+
+		cmd := exec.Command("buildah", args...)
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+
+		if err := cmd.Run(); err != nil {
+			return fmt.Errorf("buildah push failed for tag %s: %w", tag, err)
+		}
+	}
+
+	return nil
+}

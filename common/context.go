@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"os"
+	"strings"
 )
 
 type Context struct {
@@ -22,6 +23,13 @@ func (c *Context) BasicAuth() string {
 
 func (c *Context) RepoUrl() string {
 	return fmt.Sprintf("%s/%s.git", c.ServerURL, c.Repository)
+}
+
+func (c *Context) ResolvePath(path string) string {
+	if strings.HasPrefix(path, "/") {
+		return path
+	}
+	return fmt.Sprintf("%s/%s", c.Workspace, path)
 }
 
 func (c *Context) WriteOutput(m map[string]string) error {

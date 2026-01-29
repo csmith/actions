@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"path/filepath"
 
 	"chameth.com/actions/common"
 )
@@ -36,7 +35,7 @@ func Run(ctx *common.Context, dockerfile, context, target, authfile string) erro
 		return fmt.Errorf("buildah build failed: %w", err)
 	}
 
-	targetPath := filepath.Join(ctx.Workspace, target)
+	targetPath := ctx.ResolvePath(target)
 
 	pushArgs := []string{
 		"push",

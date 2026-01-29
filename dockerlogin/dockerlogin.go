@@ -40,11 +40,5 @@ func Run(ctx *common.Context, registry, username, password, authfile string) err
 		return fmt.Errorf("buildah login failed: %w", err)
 	}
 
-	authfilePath := ctx.Workspace
-	if !strings.HasSuffix(authfilePath, "/") {
-		authfilePath += "/"
-	}
-	authfilePath += authfile
-
-	return ctx.WriteOutput(map[string]string{"authfile": authfilePath})
+	return ctx.WriteOutput(map[string]string{"authfile": ctx.ResolvePath(authfile)})
 }
