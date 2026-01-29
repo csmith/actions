@@ -25,7 +25,7 @@ func Run(ctx *common.Context, dockerfile, context, target, authfile string) erro
 		args = append(args, "-f", dockerfile)
 	}
 
-	args = append(args, context)
+	args = append(args, ctx.ResolvePath(context))
 
 	cmd := exec.Command("buildah", args...)
 	cmd.Stdout = os.Stdout
