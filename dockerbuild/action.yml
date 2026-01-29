@@ -7,6 +7,7 @@ runs:
     - -dockerfile=${{ inputs.dockerfile }}
     - -context=${{ inputs.context }}
     - -target=${{ inputs.target }}
+    - -authfile=${{ inputs.authfile }}
 inputs:
   dockerfile:
     description: 'Path to Dockerfile'
@@ -20,6 +21,10 @@ inputs:
     description: 'Output tar file for the image'
     required: false
     default: 'image.tar'
+  authfile:
+    description: 'Path to authentication file'
+    required: false
+    default: '.registry-auth.json'
 outputs:
   image:
     description: 'Path to the exported image tar file'

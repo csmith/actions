@@ -11,7 +11,7 @@ import (
 
 const imageTag = "dockerbuild-image:latest"
 
-func Run(ctx *common.Context, dockerfile, context, target string) error {
+func Run(ctx *common.Context, dockerfile, context, target, authfile string) error {
 	sourceLabel := fmt.Sprintf("%s/%s", ctx.ServerURL, ctx.Repository)
 
 	args := []string{
@@ -43,6 +43,10 @@ func Run(ctx *common.Context, dockerfile, context, target string) error {
 		"--format", "oci",
 		imageTag,
 		fmt.Sprintf("oci-archive:%s", targetPath),
+	}
+
+	if authfile != "" {
+		pushArgs = append(pushArgs, "--authfile", authfile)
 	}
 
 	cmd = exec.Command("buildah", pushArgs...)

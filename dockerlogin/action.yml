@@ -1,0 +1,25 @@
+name: 'Docker Login'
+description: 'Login to a container registry using buildah'
+runs:
+  using: 'docker'
+  image: 'docker://git.yak-wall.ts.net/public/actions/dockerlogin'
+  args:
+    - -registry=${{ inputs.registry }}
+    - -username=${{ inputs.username }}
+    - -authfile=${{ inputs.authfile }}
+  env:
+    PASSWORD: ${{ inputs.password }}
+inputs:
+  registry:
+    description: 'Registry URL (e.g., docker.io, ghcr.io)'
+    required: true
+  username:
+    description: 'Username for authentication'
+    required: true
+  password:
+    description: 'Password for authentication'
+    required: true
+  authfile:
+    description: 'Path to authentication file'
+    required: false
+    default: '.registry-auth.json'
