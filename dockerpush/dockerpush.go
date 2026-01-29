@@ -41,7 +41,7 @@ func Run(ctx *common.Context, archive, name, tags, authfile string) error {
 			args = append(args, "--authfile", ctx.ResolvePath(authfile))
 		}
 
-		args = append(args, fmt.Sprintf("oci-archive:%s", resolvedArchive), target)
+		args = append(args, fmt.Sprintf("oci-archive:%s", resolvedArchive), fmt.Sprintf("docker://%s", target))
 
 		cmd := exec.Command("skopeo", args...)
 		cmd.Stdout = os.Stdout
