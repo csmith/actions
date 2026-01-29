@@ -1,0 +1,20 @@
+name: 'Docker Build'
+description: 'Build Docker images using buildah'
+runs:
+  using: 'docker'
+  image: 'docker://git.yak-wall.ts.net/public/actions/dockerbuild'
+  args:
+    - -dockerfile=${{ inputs.dockerfile }}
+    - -context=${{ inputs.context }}
+inputs:
+  dockerfile:
+    description: 'Path to Dockerfile'
+    required: false
+    default: ''
+  context:
+    description: 'Build context path'
+    required: false
+    default: '.'
+outputs:
+  imageid:
+    description: 'The built image ID'

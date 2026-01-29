@@ -26,3 +26,11 @@ jobs:
     with:
       dockerfile: imagetags/Dockerfile
       image: public/actions/imagetags
+
+  dockerbuild:
+    uses: meta/workflows/.forgejo/workflows/image-build.yml@master
+    runs-on: docker
+    secrets: inherit
+    with:
+      dockerfile: dockerbuild/Dockerfile
+      image: public/actions/dockerbuild
