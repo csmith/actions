@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	archive  = flag.String("archive", "", "Path to the image tar file to push")
+	archive  = flag.String("archive", "image.tar", "Path to the image tar file to push")
 	name     = flag.String("name", "", "Base image name")
 	tags     = flag.String("tags", "", "Comma-separated list of tags to push")
 	authfile = flag.String("authfile", ".registry-auth.json", "Path to authentication file")

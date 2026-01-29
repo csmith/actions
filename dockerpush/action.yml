@@ -11,7 +11,8 @@ runs:
 inputs:
   archive:
     description: 'Path to the image tar file to push'
-    required: true
+    required: false
+    default: 'image.tar'
   name:
     description: 'Base image name (e.g., docker.io/username/myimage)'
     required: true
