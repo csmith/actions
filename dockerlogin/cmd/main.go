@@ -13,6 +13,7 @@ var (
 	registry = flag.String("registry", "", "Registry URL")
 	username = flag.String("username", "", "Username for authentication")
 	authfile = flag.String("authfile", ".registry-auth.json", "Path to authentication file")
+	debug    = flag.Bool("debug", false, "Enable debug logging")
 )
 
 func main() {
@@ -23,6 +24,8 @@ func main() {
 	}
 
 	flag.Parse()
+
+	common.ConfigureLogging(*debug)
 
 	password, hasPassword := os.LookupEnv("PASSWORD")
 	if !hasPassword {

@@ -5,11 +5,16 @@ runs:
   image: 'docker://git.yak-wall.ts.net/public/actions/checkout'
   args:
     - -path=${{ inputs.path }}
+    - -debug=${{ inputs.debug }}
 inputs:
   path:
     description: 'Path to checkout to (relative to workspace)'
     required: false
     default: 'src'
+  debug:
+    description: 'Enable debug logging'
+    required: false
+    default: 'false'
 outputs:
   path:
     description: 'The path the repository was checked out to'

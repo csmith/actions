@@ -7,6 +7,7 @@ runs:
     - -registry=${{ inputs.registry }}
     - -username=${{ inputs.username }}
     - -authfile=${{ inputs.authfile }}
+    - -debug=${{ inputs.debug }}
   env:
     PASSWORD: ${{ inputs.password }}
 inputs:
@@ -23,3 +24,7 @@ inputs:
     description: 'Path to authentication file'
     required: false
     default: '.registry-auth.json'
+  debug:
+    description: 'Enable debug logging'
+    required: false
+    default: 'false'

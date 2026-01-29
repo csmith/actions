@@ -14,6 +14,7 @@ var (
 	context    = flag.String("context", ".", "Build context path")
 	target     = flag.String("target", "image.tar", "Output tar file for the image")
 	authfile   = flag.String("authfile", ".registry-auth.json", "Path to authfile")
+	debug      = flag.Bool("debug", false, "Enable debug logging")
 )
 
 func main() {
@@ -24,6 +25,8 @@ func main() {
 	}
 
 	flag.Parse()
+
+	common.ConfigureLogging(*debug)
 
 	if err := dockerbuild.Run(ctx, *dockerfile, *context, *target, *authfile); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)

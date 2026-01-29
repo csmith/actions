@@ -8,6 +8,7 @@ runs:
     - -context=${{ inputs.context }}
     - -target=${{ inputs.target }}
     - -authfile=${{ inputs.authfile }}
+    - -debug=${{ inputs.debug }}
 inputs:
   dockerfile:
     description: 'Path to Dockerfile'
@@ -25,6 +26,10 @@ inputs:
     description: 'Path to authentication file'
     required: false
     default: '.registry-auth.json'
+  debug:
+    description: 'Enable debug logging'
+    required: false
+    default: 'false'
 outputs:
   image:
     description: 'Path to the exported image tar file'
