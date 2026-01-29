@@ -2,7 +2,7 @@ name: 'Docker Login'
 description: 'Login to a container registry using buildah'
 runs:
   using: 'docker'
-  image: 'docker://git.yak-wall.ts.net/public/actions/dockerlogin'
+  image: 'docker://git.yak-wall.ts.net/public/actions/dockerlogin:dev'
   args:
     - -registry=${{ inputs.registry }}
     - -username=${{ inputs.username }}

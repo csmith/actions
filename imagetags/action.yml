@@ -2,7 +2,7 @@ name: 'Image Tags'
 description: 'Generate docker image tags based on git ref'
 runs:
   using: 'docker'
-  image: 'docker://git.yak-wall.ts.net/public/actions/imagetags'
+  image: 'docker://git.yak-wall.ts.net/public/actions/imagetags:dev'
   args:
     - -debug=${{ inputs.debug }}
 inputs:

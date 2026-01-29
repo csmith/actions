@@ -2,7 +2,7 @@ name: 'Docker Push'
 description: 'Push Docker images from a tar file to a container registry'
 runs:
   using: 'docker'
-  image: 'docker://git.yak-wall.ts.net/public/actions/dockerpush'
+  image: 'docker://git.yak-wall.ts.net/public/actions/dockerpush:dev'
   args:
     - -archive=${{ inputs.archive }}
     - -name=${{ inputs.name }}
