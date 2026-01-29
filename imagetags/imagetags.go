@@ -13,6 +13,7 @@ import (
 )
 
 func Run(ctx *common.Context) error {
+	slog.Info("Generating image tags", "ref", ctx.Ref)
 	tags, err := tags(ctx)
 	if err != nil {
 		return err
@@ -23,16 +24,19 @@ func Run(ctx *common.Context) error {
 		return nil
 	}
 
+	slog.Info("Generated tags", "tags", strings.Join(tags, ","))
 	return ctx.WriteOutput(map[string]string{"tags": strings.Join(tags, ",")})
 }
 
 func tags(ctx *common.Context) ([]string, error) {
 	if ctx.Ref == "refs/heads/main" || ctx.Ref == "refs/heads/master" {
+		slog.Debug("Using dev tag for main/master branch")
 		return []string{"dev"}, nil
 	}
 
 	if after, ok := strings.CutPrefix(ctx.Ref, "refs/tags/"); ok {
 		tag := strings.TrimPrefix(after, "v")
+		slog.Debug("Processing version tag", "tag", tag)
 		targetVersion, err := version.NewVersion(tag)
 
 		tags, err := gitrefs.Fetch(ctx.RepoUrl(), gitrefs.WithAuth("x-access-token", ctx.Token), gitrefs.TagsOnly())
@@ -40,6 +44,7 @@ func tags(ctx *common.Context) ([]string, error) {
 			return nil, fmt.Errorf("couldn't find tags for repository: %w", err)
 		}
 
+		slog.Debug("Fetched repository tags for version resolution", "count", len(tags))
 		return resolve(targetVersion, parseVersions(maps.Keys(tags))), nil
 	}
 

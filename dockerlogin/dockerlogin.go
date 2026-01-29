@@ -2,6 +2,7 @@ package dockerlogin
 
 import (
 	"fmt"
+	"log/slog"
 	"os"
 	"os/exec"
 
@@ -9,6 +10,12 @@ import (
 )
 
 func Run(ctx *common.Context, registry, username, password, authfile string) error {
+	slog.Info("Logging into container registry",
+		"registry", registry,
+		"username", username,
+		"authfile", authfile,
+	)
+
 	args := []string{
 		"login",
 		registry,
@@ -17,6 +24,7 @@ func Run(ctx *common.Context, registry, username, password, authfile string) err
 		"--authfile", authfile,
 	}
 
+	slog.Debug("Executing buildah login", "registry", registry, "username", username, "authfile", authfile)
 	cmd := exec.Command("buildah", args...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -39,5 +47,6 @@ func Run(ctx *common.Context, registry, username, password, authfile string) err
 		return fmt.Errorf("buildah login failed: %w", err)
 	}
 
+	slog.Info("Registry login successful", "registry", registry, "authfile", ctx.ResolvePath(authfile))
 	return ctx.WriteOutput(map[string]string{"authfile": ctx.ResolvePath(authfile)})
 }

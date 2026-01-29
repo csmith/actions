@@ -2,6 +2,7 @@ package dockerpush
 
 import (
 	"fmt"
+	"log/slog"
 	"os"
 	"os/exec"
 	"strings"
@@ -25,10 +26,18 @@ func Run(ctx *common.Context, archive, name, tags, authfile string) error {
 		}
 	}
 
+	slog.Info("Pushing Docker image",
+		"archive", archive,
+		"image_name", name,
+		"tags", strings.Join(tagList, ","),
+		"authfile", authfile != "",
+	)
+
 	archivePath := fmt.Sprintf("oci-archive:%s", ctx.ResolvePath(archive))
 
 	for _, tag := range tagList {
 		target := fmt.Sprintf("%s:%s", name, tag)
+		slog.Debug("Pushing tag", "target", target)
 
 		args := []string{
 			"push",
@@ -47,7 +56,10 @@ func Run(ctx *common.Context, archive, name, tags, authfile string) error {
 		if err := cmd.Run(); err != nil {
 			return fmt.Errorf("buildah push failed for tag %s: %w", tag, err)
 		}
+
+		slog.Info("Tag pushed successfully", "target", target)
 	}
 
+	slog.Info("All tags pushed successfully")
 	return nil
 }
