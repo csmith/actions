@@ -41,13 +41,13 @@ func Run(ctx *common.Context, archive, name, tags, authfile string) error {
 
 		args := []string{
 			"push",
-			archivePath,
-			target,
 		}
 
 		if authfile != "" {
 			args = append(args, "--authfile", ctx.ResolvePath(authfile))
 		}
+
+		args = append(args, archivePath, target)
 
 		cmd := exec.Command("buildah", args...)
 		cmd.Stdout = os.Stdout

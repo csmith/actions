@@ -54,14 +54,14 @@ func Run(ctx *common.Context, dockerfile, context, target, authfile string) erro
 	pushArgs := []string{
 		"push",
 		"--format", "oci",
-		imageTag,
-		fmt.Sprintf("oci-archive:%s", targetPath),
 	}
 
 	if authfile != "" {
 		authfilePath := ctx.ResolvePath(authfile)
 		pushArgs = append(pushArgs, "--authfile", authfilePath)
 	}
+
+	pushArgs = append(pushArgs, imageTag, fmt.Sprintf("oci-archive:%s", targetPath))
 
 	slog.Debug("Executing buildah push to archive", "args", pushArgs)
 	cmd = exec.Command("buildah", pushArgs...)
