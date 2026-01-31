@@ -5,7 +5,7 @@ COPY . .
 
 RUN --mount=type=cache,target=/go/pkg/mod go build -o /action ./imagetags/cmd;
 
-FROM scratch
+FROM alpine:3.23.2
 
 COPY --from=build /action /action
 
