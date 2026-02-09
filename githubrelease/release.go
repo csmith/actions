@@ -45,7 +45,7 @@ func Run(ctx *common.Context, repo, filename, token string) error {
 		return fmt.Errorf("failed to create release: %w", err)
 	}
 
-	slog.Info("Created GitHub release", "url", rel.HTMLURL, "version", version.Version)
+	slog.Info("Created GitHub release", "url", *rel.HTMLURL, "version", version.Version)
 
 	return nil
 }
