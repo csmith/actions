@@ -32,6 +32,13 @@ func (c *Context) ResolvePath(path string) string {
 	return fmt.Sprintf("%s/%s", c.Workspace, path)
 }
 
+func (c *Context) Tag() string {
+	if after, ok := strings.CutPrefix(c.Ref, "refs/tags/"); ok {
+		return after
+	}
+	return ""
+}
+
 func (c *Context) WriteOutput(m map[string]string) error {
 	f, err := os.OpenFile(c.OutputFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
@@ -40,7 +47,7 @@ func (c *Context) WriteOutput(m map[string]string) error {
 	defer f.Close()
 
 	for k, v := range m {
-		if _, err := f.WriteString(fmt.Sprintf("%s=%s\n", k, v)); err != nil {
+		if _, err := fmt.Fprintf(f, "%s=%s\n", k, v); err != nil {
 			return fmt.Errorf("failed to write output: %w", err)
 		}
 	}

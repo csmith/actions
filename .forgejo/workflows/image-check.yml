@@ -36,3 +36,9 @@ jobs:
     runs-on: docker
     with:
       dockerfile: dockerpush/Dockerfile
+
+  githubrelease:
+    uses: meta/workflows/.forgejo/workflows/image-test.yml@master
+    runs-on: docker
+    with:
+      dockerfile: githubrelease/Dockerfile

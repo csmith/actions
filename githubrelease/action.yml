@@ -1,0 +1,26 @@
+name: "GitHub Release"
+description: "Create a new release on GitHub for the current ref"
+runs:
+  using: "docker"
+  image: "docker://git.yak-wall.ts.net/public/actions/githubrelease:dev"
+  args:
+    - -repo=${{ inputs.repo }}
+    - -changelog=${{ inputs.changelog }}
+    - -debug=${{ inputs.debug }}
+  env:
+    TOKEN: ${{ inputs.token }}
+inputs:
+  repo:
+    description: "Repository to create the release in"
+    required: true
+  token:
+    description: "Token to use to authenticate to GitHub"
+    required: true
+  changelog:
+    description: "Path to the CHANGELOG to use for release notes"
+    required: false
+    default: "src/CHANGELOG.md"
+  debug:
+    description: "Enable debug logging"
+    required: false
+    default: "false"

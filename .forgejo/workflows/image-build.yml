@@ -50,3 +50,11 @@ jobs:
     with:
       dockerfile: dockerpush/Dockerfile
       image: public/actions/dockerpush
+
+  githubrelease:
+    uses: meta/workflows/.forgejo/workflows/image-build.yml@master
+    runs-on: docker
+    secrets: inherit
+    with:
+      dockerfile: githubrelease/Dockerfile
+      image: public/actions/githubrelease
