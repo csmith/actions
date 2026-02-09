@@ -37,7 +37,7 @@ func Run(ctx *common.Context, repo, filename, token string) error {
 	rel, _, err := client.Repositories.CreateRelease(context.Background(), owner, name, &github.RepositoryRelease{
 		TagName:    github.Ptr(tag),
 		Name:       &version.Version,
-		Body:       github.Ptr(version.String()),
+		Body:       github.Ptr(createBody(version)),
 		MakeLatest: github.Ptr("legacy"),
 	})
 
@@ -61,4 +61,23 @@ func findVersion(versions []*changelog.Version, target string) *changelog.Versio
 
 func sameVersion(candidate, target string) bool {
 	return strings.TrimPrefix(candidate, "v") == strings.TrimPrefix(target, "v")
+}
+
+func createBody(v *changelog.Version) string {
+	var lines []string
+	if len(v.History) > 0 {
+		historyStrs := make([]string, len(v.History))
+		for i, history := range v.History {
+			historyStrs[i] = history.String()
+		}
+		lines = append(lines, strings.Join(historyStrs, "\n"))
+	}
+	if len(v.Subsections) > 0 {
+		subsectionsStrs := make([]string, len(v.Subsections))
+		for i, subsection := range v.Subsections {
+			subsectionsStrs[i] = subsection.String()
+		}
+		lines = append(lines, strings.Join(subsectionsStrs, "\n\n"))
+	}
+	return strings.Join(lines, "\n\n")
 }
