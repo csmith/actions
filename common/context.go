@@ -2,19 +2,34 @@ package common
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
+	"log/slog"
 	"os"
 	"strings"
 )
 
 type Context struct {
-	Workspace  string
-	Token      string
-	ServerURL  string
-	Repository string
-	Ref        string
-	SHA        string
-	OutputFile string
+	Workspace      string
+	Token          string
+	ServerURL      string
+	Repository     string
+	HeadRepository string
+	Ref            string
+	HeadRef        string
+	SHA            string
+	OutputFile     string
+}
+
+type pullRequestEvent struct {
+	PullRequest struct {
+		Head struct {
+			Repo struct {
+				FullName string `json:"full_name"`
+			} `json:"repo"`
+			Ref string `json:"ref"`
+		} `json:"head"`
+	} `json:"pull_request"`
 }
 
 func (c *Context) BasicAuth() string {
@@ -22,7 +37,11 @@ func (c *Context) BasicAuth() string {
 }
 
 func (c *Context) RepoUrl() string {
-	return fmt.Sprintf("%s/%s.git", c.ServerURL, c.Repository)
+	repo := c.Repository
+	if c.HeadRepository != "" {
+		repo = c.HeadRepository
+	}
+	return fmt.Sprintf("%s/%s.git", c.ServerURL, repo)
 }
 
 func (c *Context) ResolvePath(path string) string {
@@ -66,7 +85,7 @@ func ContextFromEnv() (*Context, error) {
 }
 
 func contextFromEnv(prefix string) (*Context, error) {
-	return &Context{
+	ctx := &Context{
 		Workspace:  lookupEnv(prefix, "WORKSPACE"),
 		Token:      lookupEnv(prefix, "TOKEN"),
 		ServerURL:  lookupEnv(prefix, "SERVER_URL"),
@@ -74,10 +93,40 @@ func contextFromEnv(prefix string) (*Context, error) {
 		Ref:        lookupEnv(prefix, "REF"),
 		SHA:        lookupEnv(prefix, "SHA"),
 		OutputFile: lookupEnv(prefix, "OUTPUT"),
-	}, nil
+	}
+
+	eventName := lookupEnv(prefix, "EVENT_NAME")
+	if eventName == "pull_request" {
+		eventPath := lookupEnv(prefix, "EVENT_PATH")
+		if eventPath != "" {
+			headRepo, headRef, err := parsePullRequestEvent(eventPath)
+			if err != nil {
+				slog.Warn("Failed to parse pull request event, using base repository", "error", err)
+			} else {
+				ctx.HeadRepository = headRepo
+				ctx.HeadRef = headRef
+			}
+		}
+	}
+
+	return ctx, nil
 }
 
 func lookupEnv(prefix, key string) string {
 	val, _ := os.LookupEnv(fmt.Sprintf("%s_%s", prefix, key))
 	return val
+}
+
+func parsePullRequestEvent(path string) (headRepo, headRef string, err error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to read event file: %w", err)
+	}
+
+	var event pullRequestEvent
+	if err := json.Unmarshal(data, &event); err != nil {
+		return "", "", fmt.Errorf("failed to parse event JSON: %w", err)
+	}
+
+	return event.PullRequest.Head.Repo.FullName, event.PullRequest.Head.Ref, nil
 }
