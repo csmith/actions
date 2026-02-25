@@ -5,7 +5,7 @@ COPY . .
 
 RUN --mount=type=cache,target=/go/pkg/mod go build -o /action ./githubrelease/cmd;
 
-FROM alpine:3.23.2
+FROM alpine:3.23.3
 
 COPY --from=build /action /action
 
