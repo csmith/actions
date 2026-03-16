@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"chameth.com/actions/common"
-	"github.com/google/go-github/v82/github"
+	"github.com/google/go-github/v83/github"
 	"github.com/parkr/changelog"
 )
 
