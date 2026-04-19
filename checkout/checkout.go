@@ -9,7 +9,7 @@ import (
 	"chameth.com/actions/common"
 )
 
-func Run(ctx *common.Context, path string) error {
+func Run(ctx *common.Context, path string, fetchTags bool) error {
 	targetDir := ctx.ResolvePath(path)
 	slog.Info("Checking out repository", "repo", ctx.Repository, "sha", ctx.SHA, "target_dir", targetDir)
 
@@ -31,6 +31,14 @@ func Run(ctx *common.Context, path string) error {
 	cmd = exec.Command("git", "checkout", ctx.SHA)
 	if output, err := cmd.CombinedOutput(); err != nil {
 		return fmt.Errorf("git checkout failed: %w\n%s", err, output)
+	}
+
+	if fetchTags {
+		slog.Debug("Fetching tags")
+		cmd = exec.Command("git", "fetch", "--tags")
+		if output, err := cmd.CombinedOutput(); err != nil {
+			return fmt.Errorf("git fetch --tags failed: %w\n%s", err, output)
+		}
 	}
 
 	slog.Info("Repository checked out successfully", "path", path)

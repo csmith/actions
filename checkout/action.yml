@@ -6,6 +6,7 @@ runs:
   args:
     - -path=${{ inputs.path }}
     - -debug=${{ inputs.debug }}
+    - -fetch-tags=${{ inputs.fetch-tags }}
 inputs:
   path:
     description: 'Path to checkout to (relative to workspace)'
@@ -15,6 +16,10 @@ inputs:
     description: 'Enable debug logging'
     required: false
     default: 'false'
+  fetch-tags:
+    description: 'Fetch tags from the remote'
+    required: false
+    default: 'true'
 outputs:
   path:
     description: 'The path the repository was checked out to'

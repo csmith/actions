@@ -10,8 +10,9 @@ import (
 )
 
 var (
-	path  = flag.String("path", "src", "Path to checkout to (relative to workspace)")
-	debug = flag.Bool("debug", false, "Enable debug logging")
+	path       = flag.String("path", "src", "Path to checkout to (relative to workspace)")
+	debug      = flag.Bool("debug", false, "Enable debug logging")
+	fetchTags  = flag.Bool("fetch-tags", true, "Fetch tags from the remote")
 )
 
 func main() {
@@ -25,7 +26,7 @@ func main() {
 
 	common.ConfigureLogging(*debug)
 
-	if err := checkout.Run(ctx, *path); err != nil {
+	if err := checkout.Run(ctx, *path, *fetchTags); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
