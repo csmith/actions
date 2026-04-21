@@ -35,7 +35,7 @@ func Run(ctx *common.Context, path string, fetchTags bool) error {
 
 	if fetchTags {
 		slog.Debug("Fetching tags")
-		cmd = exec.Command("git", "fetch", "--tags")
+		cmd = exec.Command("git", "-c", fmt.Sprintf("http.extraHeader=Authorization: basic %s", ctx.BasicAuth()), "fetch", "--tags")
 		if output, err := cmd.CombinedOutput(); err != nil {
 			return fmt.Errorf("git fetch --tags failed: %w\n%s", err, output)
 		}
