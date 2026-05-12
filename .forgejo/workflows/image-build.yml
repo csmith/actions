@@ -66,3 +66,11 @@ jobs:
     with:
       dockerfile: wowaddon/Dockerfile
       image: public/actions/wowaddon
+
+  wowinterface:
+    uses: meta/workflows/.forgejo/workflows/image-build.yml@master
+    runs-on: docker
+    secrets: inherit
+    with:
+      dockerfile: wowinterface/Dockerfile
+      image: public/actions/wowinterface

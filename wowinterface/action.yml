@@ -1,0 +1,25 @@
+name: 'WowInterface Upload'
+description: 'Upload an addon zip file to WowInterface'
+runs:
+  using: 'docker'
+  image: 'docker://git.yak-wall.ts.net/public/actions/wowinterface:dev'
+  args:
+    - -addon-id=${{ inputs.addon-id }}
+    - -path=${{ inputs.path }}
+    - -debug=${{ inputs.debug }}
+  env:
+    API_KEY: ${{ inputs.api-key }}
+inputs:
+  api-key:
+    description: 'WowInterface API token'
+    required: true
+  addon-id:
+    description: 'WowInterface addon ID'
+    required: true
+  path:
+    description: 'Path to the zip file to upload (supports glob patterns)'
+    required: true
+  debug:
+    description: 'Enable debug logging'
+    required: false
+    default: 'false'

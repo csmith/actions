@@ -48,3 +48,9 @@ jobs:
     runs-on: docker
     with:
       dockerfile: wowaddon/Dockerfile
+
+  wowinterface:
+    uses: meta/workflows/.forgejo/workflows/image-test.yml@master
+    runs-on: docker
+    with:
+      dockerfile: wowinterface/Dockerfile
