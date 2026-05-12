@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"chameth.com/actions/common"
@@ -12,7 +14,7 @@ import (
 	"github.com/parkr/changelog"
 )
 
-func Run(ctx *common.Context, repo, filename, token string) error {
+func Run(ctx *common.Context, repo, filename, token, assets string) error {
 	cl, err := changelog.NewChangelogFromFile(filename)
 	if err != nil {
 		return fmt.Errorf("failed to parse changelog: %w", err)
@@ -47,6 +49,12 @@ func Run(ctx *common.Context, repo, filename, token string) error {
 
 	slog.Info("Created GitHub release", "url", *rel.HTMLURL, "version", version.Version)
 
+	if assets != "" {
+		if err := uploadAssets(ctx, client, owner, name, rel.GetID(), assets); err != nil {
+			return fmt.Errorf("failed to upload assets: %w", err)
+		}
+	}
+
 	return nil
 }
 
@@ -80,4 +88,57 @@ func createBody(v *changelog.Version) string {
 		lines = append(lines, strings.Join(subsectionsStrs, "\n\n"))
 	}
 	return strings.Join(lines, "\n\n")
+}
+
+func uploadAssets(ctx *common.Context, client *github.Client, owner, repo string, releaseID int64, assets string) error {
+	patterns := strings.SplitSeq(assets, ",")
+	for pattern := range patterns {
+		pattern = strings.TrimSpace(pattern)
+		if pattern == "" {
+			continue
+		}
+
+		resolved := ctx.ResolvePath(pattern)
+		matches, err := filepath.Glob(resolved)
+		if err != nil {
+			return fmt.Errorf("invalid glob pattern %q: %w", pattern, err)
+		}
+		if len(matches) == 0 {
+			slog.Warn("No files matched glob pattern", "pattern", pattern)
+			continue
+		}
+
+		for _, match := range matches {
+			if err := uploadAsset(client, owner, repo, releaseID, match); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func uploadAsset(client *github.Client, owner, repo string, releaseID int64, path string) error {
+	f, err := os.Open(path)
+	if err != nil {
+		return fmt.Errorf("failed to open asset %q: %w", path, err)
+	}
+	defer f.Close()
+
+	name := filepath.Base(path)
+	slog.Info("Uploading release asset", "name", name, "path", path)
+
+	_, _, err = client.Repositories.UploadReleaseAsset(
+		context.Background(),
+		owner,
+		repo,
+		releaseID,
+		&github.UploadOptions{Name: name},
+		f,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to upload asset %q: %w", name, err)
+	}
+
+	slog.Info("Uploaded release asset", "name", name)
+	return nil
 }

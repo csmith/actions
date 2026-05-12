@@ -13,6 +13,7 @@ var (
 	repo      = flag.String("repo", "", "Repository to create release in")
 	changelog = flag.String("changelog", "src/CHANGELOG.md", "Path to the CHANGELOG to use for release notes")
 	debug     = flag.Bool("debug", false, "Enable debug logging")
+	assets    = flag.String("assets", "", "Comma-separated list of file paths or glob patterns to attach to the release")
 )
 
 func main() {
@@ -32,7 +33,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err := githubrelease.Run(ctx, *repo, *changelog, token); err != nil {
+	if err := githubrelease.Run(ctx, *repo, *changelog, token, *assets); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
