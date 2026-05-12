@@ -6,6 +6,7 @@ runs:
   args:
     - -addon-id=${{ inputs.addon-id }}
     - -path=${{ inputs.path }}
+    - -changelog=${{ inputs.changelog }}
     - -debug=${{ inputs.debug }}
   env:
     API_KEY: ${{ inputs.api-key }}
@@ -23,3 +24,7 @@ inputs:
     description: 'Enable debug logging'
     required: false
     default: 'false'
+  changelog:
+    description: 'Path to a changelog file to include with the upload'
+    required: false
+    default: 'src/CHANGELOG.md'

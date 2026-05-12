@@ -12,9 +12,10 @@ import (
 	"strings"
 
 	"chameth.com/actions/common"
+	"github.com/parkr/changelog"
 )
 
-func Run(ctx *common.Context, apiKey, addonID, path string) error {
+func Run(ctx *common.Context, apiKey, addonID, path, changelogFile string) error {
 	resolved := ctx.ResolvePath(path)
 	matches, err := filepath.Glob(resolved)
 	if err != nil {
@@ -33,9 +34,18 @@ func Run(ctx *common.Context, apiKey, addonID, path string) error {
 		return err
 	}
 
+	var changelogStr string
+	cl, err := changelog.NewChangelogFromFile(ctx.ResolvePath(changelogFile))
+	if err == nil {
+		tag := ctx.Tag()
+		if v := findVersion(cl.Versions, version, tag); v != nil {
+			changelogStr = createBody(v)
+		}
+	}
+
 	slog.Info("Uploading to WowInterface", "file", filePath, "addon", addonID, "version", version)
 
-	if err := upload(apiKey, addonID, version, filePath); err != nil {
+	if err := upload(apiKey, addonID, version, filePath, changelogStr); err != nil {
 		return fmt.Errorf("failed to upload: %w", err)
 	}
 
@@ -53,7 +63,36 @@ func extractVersion(path string) (string, error) {
 	return name[idx+1:], nil
 }
 
-func upload(apiKey, addonID, version, filePath string) error {
+func findVersion(versions []*changelog.Version, version, tag string) *changelog.Version {
+	for i := range versions {
+		v := strings.TrimPrefix(versions[i].Version, "v")
+		if v == strings.TrimPrefix(version, "v") || v == strings.TrimPrefix(tag, "v") {
+			return versions[i]
+		}
+	}
+	return nil
+}
+
+func createBody(v *changelog.Version) string {
+	var lines []string
+	if len(v.History) > 0 {
+		historyStrs := make([]string, len(v.History))
+		for i, history := range v.History {
+			historyStrs[i] = history.String()
+		}
+		lines = append(lines, strings.Join(historyStrs, "\n"))
+	}
+	if len(v.Subsections) > 0 {
+		subsectionStrs := make([]string, len(v.Subsections))
+		for i, subsection := range v.Subsections {
+			subsectionStrs[i] = subsection.String()
+		}
+		lines = append(lines, strings.Join(subsectionStrs, "\n\n"))
+	}
+	return strings.Join(lines, "\n\n")
+}
+
+func upload(apiKey, addonID, version, filePath, changelog string) error {
 	var buf bytes.Buffer
 	w := multipart.NewWriter(&buf)
 
@@ -63,6 +102,12 @@ func upload(apiKey, addonID, version, filePath string) error {
 
 	if err := w.WriteField("version", version); err != nil {
 		return fmt.Errorf("failed to write version field: %w", err)
+	}
+
+	if changelog != "" {
+		if err := w.WriteField("changelog", changelog); err != nil {
+			return fmt.Errorf("failed to write changelog field: %w", err)
+		}
 	}
 
 	f, err := os.Open(filePath)

@@ -10,9 +10,9 @@ import (
 )
 
 var (
-	path       = flag.String("path", "src", "Path to checkout to (relative to workspace)")
-	debug      = flag.Bool("debug", false, "Enable debug logging")
-	fetchTags  = flag.Bool("fetch-tags", true, "Fetch tags from the remote")
+	path      = flag.String("path", "src", "Path to checkout to (relative to workspace)")
+	debug     = flag.Bool("debug", false, "Enable debug logging")
+	fetchTags = flag.Bool("fetch-tags", true, "Fetch tags from the remote")
 )
 
 func main() {

@@ -10,9 +10,10 @@ import (
 )
 
 var (
-	addonID = flag.String("addon-id", "", "WowInterface addon ID")
-	path    = flag.String("path", "", "Path to the zip file to upload (supports glob patterns)")
-	debug   = flag.Bool("debug", false, "Enable debug logging")
+	addonID   = flag.String("addon-id", "", "WowInterface addon ID")
+	path      = flag.String("path", "", "Path to the zip file to upload (supports glob patterns)")
+	changelog = flag.String("changelog", "src/CHANGELOG.md", "Path to a changelog file to include with the upload")
+	debug     = flag.Bool("debug", false, "Enable debug logging")
 )
 
 func main() {
@@ -41,7 +42,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err := wowinterface.Run(ctx, apiKey, *addonID, *path); err != nil {
+	if err := wowinterface.Run(ctx, apiKey, *addonID, *path, *changelog); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
