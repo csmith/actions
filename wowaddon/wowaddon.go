@@ -2,6 +2,7 @@ package wowaddon
 
 import (
 	"archive/zip"
+	"bufio"
 	"fmt"
 	"io"
 	"io/fs"
@@ -17,13 +18,12 @@ func Run(ctx *common.Context, src, dst string) error {
 	srcPath := ctx.ResolvePath(src)
 	dstPath := ctx.ResolvePath(dst)
 
-	name, err := addonName(srcPath)
+	name, version, err := addonInfo(srcPath)
 	if err != nil {
 		return err
 	}
 
-	tag := ctx.Tag()
-	zipName := zipFileName(name, tag)
+	zipName := zipFileName(name, version)
 	zipPath := filepath.Join(dstPath, zipName)
 
 	if err := os.MkdirAll(dstPath, 0755); err != nil {
@@ -48,19 +48,45 @@ func Run(ctx *common.Context, src, dst string) error {
 	return nil
 }
 
-func addonName(src string) (string, error) {
+func addonInfo(src string) (name, version string, err error) {
 	entries, err := os.ReadDir(src)
 	if err != nil {
-		return "", fmt.Errorf("failed to read source directory: %w", err)
+		return "", "", fmt.Errorf("failed to read source directory: %w", err)
 	}
 
 	for _, entry := range entries {
 		if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".toc") {
-			return strings.TrimSuffix(entry.Name(), ".toc"), nil
+			name = strings.TrimSuffix(entry.Name(), ".toc")
+			tocPath := filepath.Join(src, entry.Name())
+			version, err = parseTocVersion(tocPath)
+			if err != nil {
+				return "", "", err
+			}
+			return name, version, nil
 		}
 	}
 
-	return "", fmt.Errorf("no .toc file found in %s", src)
+	return "", "", fmt.Errorf("no .toc file found in %s", src)
+}
+
+func parseTocVersion(path string) (string, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return "", fmt.Errorf("failed to open toc file: %w", err)
+	}
+	defer f.Close()
+
+	scanner := bufio.NewScanner(f)
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if after, ok := strings.CutPrefix(line, "## Version:"); ok {
+			return strings.TrimSpace(after), nil
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		return "", fmt.Errorf("failed to read toc file: %w", err)
+	}
+	return "", nil
 }
 
 func zipFileName(name, tag string) string {
