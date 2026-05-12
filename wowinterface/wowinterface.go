@@ -145,7 +145,7 @@ func upload(apiKey, addonID, version, filePath, changelog string) error {
 
 	body, _ := io.ReadAll(resp.Body)
 
-	if resp.StatusCode != http.StatusOK {
+	if resp.StatusCode >= 400 {
 		return fmt.Errorf("upload failed with status %d: %s", resp.StatusCode, string(body))
 	}
 
