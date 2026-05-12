@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	source      = flag.String("source", ".", "Source directory containing the addon")
+	source      = flag.String("source", "src", "Source directory containing the addon")
 	destination = flag.String("destination", ".", "Destination directory for the zip file")
 	debug       = flag.Bool("debug", false, "Enable debug logging")
 )

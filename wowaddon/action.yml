@@ -11,7 +11,7 @@ inputs:
   source:
     description: 'Source directory containing the addon files'
     required: false
-    default: '.'
+    default: 'src'
   destination:
     description: 'Destination directory for the zip file'
     required: false
