@@ -58,3 +58,11 @@ jobs:
     with:
       dockerfile: githubrelease/Dockerfile
       image: public/actions/githubrelease
+
+  wowaddon:
+    uses: meta/workflows/.forgejo/workflows/image-build.yml@master
+    runs-on: docker
+    secrets: inherit
+    with:
+      dockerfile: wowaddon/Dockerfile
+      image: public/actions/wowaddon

@@ -42,3 +42,9 @@ jobs:
     runs-on: docker
     with:
       dockerfile: githubrelease/Dockerfile
+
+  wowaddon:
+    uses: meta/workflows/.forgejo/workflows/image-test.yml@master
+    runs-on: docker
+    with:
+      dockerfile: wowaddon/Dockerfile

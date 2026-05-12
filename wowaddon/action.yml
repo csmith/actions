@@ -1,0 +1,22 @@
+name: 'WoW Addon Pack'
+description: 'Create a zip file of a World of Warcraft addon'
+runs:
+  using: 'docker'
+  image: 'docker://git.yak-wall.ts.net/public/actions/wowaddon:dev'
+  args:
+    - -source=${{ inputs.source }}
+    - -destination=${{ inputs.destination }}
+    - -debug=${{ inputs.debug }}
+inputs:
+  source:
+    description: 'Source directory containing the addon files'
+    required: false
+    default: '.'
+  destination:
+    description: 'Destination directory for the zip file'
+    required: false
+    default: '.'
+  debug:
+    description: 'Enable debug logging'
+    required: false
+    default: 'false'
