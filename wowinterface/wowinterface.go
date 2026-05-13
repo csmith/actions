@@ -12,7 +12,6 @@ import (
 	"strings"
 
 	"chameth.com/actions/common"
-	"github.com/parkr/changelog"
 )
 
 func Run(ctx *common.Context, apiKey, addonID, path, changelogFile string) error {
@@ -35,12 +34,9 @@ func Run(ctx *common.Context, apiKey, addonID, path, changelogFile string) error
 	}
 
 	var changelogStr string
-	cl, err := changelog.NewChangelogFromFile(ctx.ResolvePath(changelogFile))
+	changelogSection, err := ctx.Changelog(changelogFile, version, ctx.Tag())
 	if err == nil {
-		tag := ctx.Tag()
-		if v := findVersion(cl.Versions, version, tag); v != nil {
-			changelogStr = createBody(v)
-		}
+		changelogStr = changelogSection
 	}
 
 	slog.Info("Uploading to WowInterface", "file", filePath, "addon", addonID, "version", version)
@@ -61,35 +57,6 @@ func extractVersion(path string) (string, error) {
 		return "", fmt.Errorf("cannot extract version from filename %q: expected modname-version.zip format", filepath.Base(path))
 	}
 	return name[idx+1:], nil
-}
-
-func findVersion(versions []*changelog.Version, version, tag string) *changelog.Version {
-	for i := range versions {
-		v := strings.TrimPrefix(versions[i].Version, "v")
-		if v == strings.TrimPrefix(version, "v") || v == strings.TrimPrefix(tag, "v") {
-			return versions[i]
-		}
-	}
-	return nil
-}
-
-func createBody(v *changelog.Version) string {
-	var lines []string
-	if len(v.History) > 0 {
-		historyStrs := make([]string, len(v.History))
-		for i, history := range v.History {
-			historyStrs[i] = history.String()
-		}
-		lines = append(lines, strings.Join(historyStrs, "\n"))
-	}
-	if len(v.Subsections) > 0 {
-		subsectionStrs := make([]string, len(v.Subsections))
-		for i, subsection := range v.Subsections {
-			subsectionStrs[i] = subsection.String()
-		}
-		lines = append(lines, strings.Join(subsectionStrs, "\n\n"))
-	}
-	return strings.Join(lines, "\n\n")
 }
 
 func upload(apiKey, addonID, version, filePath, changelog string) error {
