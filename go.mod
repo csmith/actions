@@ -4,7 +4,10 @@ go 1.25.6
 
 require github.com/csmith/gitrefs v1.6.0
 
-require github.com/google/go-querystring v1.2.0 // indirect
+require (
+	github.com/google/go-querystring v1.2.0 // indirect
+	golang.org/x/net v0.55.0 // indirect
+)
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
