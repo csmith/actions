@@ -1,0 +1,22 @@
+name: 'Setup Go'
+description: 'Set up a Go installation in the workspace'
+runs:
+  using: 'docker'
+  image: 'docker://git.yak-wall.ts.net/public/actions/setupgo:dev'
+  args:
+    - -target=${{ inputs.target }}
+    - -gopath=${{ inputs.gopath }}
+    - -debug=${{ inputs.debug }}
+inputs:
+  target:
+    description: 'Directory to install Go into (relative to workspace)'
+    required: false
+    default: 'tools/go'
+  gopath:
+    description: 'Directory to use as GOPATH (relative to workspace)'
+    required: false
+    default: 'cache/go'
+  debug:
+    description: 'Enable debug logging'
+    required: false
+    default: 'false'

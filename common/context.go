@@ -19,6 +19,8 @@ type Context struct {
 	HeadRef        string
 	SHA            string
 	OutputFile     string
+	PathFile       string
+	EnvFile        string
 }
 
 type pullRequestEvent struct {
@@ -74,6 +76,34 @@ func (c *Context) WriteOutput(m map[string]string) error {
 	return nil
 }
 
+func (c *Context) AddToPath(path string) error {
+	f, err := os.OpenFile(c.PathFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return fmt.Errorf("failed to open path file: %w", err)
+	}
+	defer f.Close()
+
+	if _, err := fmt.Fprintf(f, "%s\n", path); err != nil {
+		return fmt.Errorf("failed to write path: %w", err)
+	}
+
+	return nil
+}
+
+func (c *Context) SetEnv(key, value string) error {
+	f, err := os.OpenFile(c.EnvFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return fmt.Errorf("failed to open env file: %w", err)
+	}
+	defer f.Close()
+
+	if _, err := fmt.Fprintf(f, "%s=%s\n", key, value); err != nil {
+		return fmt.Errorf("failed to write env: %w", err)
+	}
+
+	return nil
+}
+
 func ContextFromEnv() (*Context, error) {
 	if _, hasForgejoJob := os.LookupEnv("FORGEJO_JOB"); hasForgejoJob {
 		return contextFromEnv("FORGEJO")
@@ -93,6 +123,8 @@ func contextFromEnv(prefix string) (*Context, error) {
 		Ref:        lookupEnv(prefix, "REF"),
 		SHA:        lookupEnv(prefix, "SHA"),
 		OutputFile: lookupEnv(prefix, "OUTPUT"),
+		PathFile:   lookupEnv(prefix, "PATH"),
+		EnvFile:    lookupEnv(prefix, "ENV"),
 	}
 
 	eventName := lookupEnv(prefix, "EVENT_NAME")

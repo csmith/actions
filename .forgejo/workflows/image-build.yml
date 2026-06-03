@@ -74,3 +74,11 @@ jobs:
     with:
       dockerfile: wowinterface/Dockerfile
       image: public/actions/wowinterface
+
+  setupgo:
+    uses: meta/workflows/.forgejo/workflows/image-build.yml@master
+    runs-on: docker
+    secrets: inherit
+    with:
+      dockerfile: setupgo/Dockerfile
+      image: public/actions/setupgo
