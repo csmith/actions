@@ -3,6 +3,7 @@ package wowaddon
 import (
 	"archive/zip"
 	"bufio"
+	"bytes"
 	"fmt"
 	"io"
 	"io/fs"
@@ -18,9 +19,17 @@ func Run(ctx *common.Context, src, dst string) error {
 	srcPath := ctx.ResolvePath(src)
 	dstPath := ctx.ResolvePath(dst)
 
-	name, version, err := addonInfo(srcPath)
+	name, tocVersion, tocPath, err := addonInfo(srcPath)
 	if err != nil {
 		return err
+	}
+
+	version := tocVersion
+	if tag := strings.TrimPrefix(ctx.Tag(), "v"); tag != "" {
+		if err := patchTocVersion(tocPath, tag); err != nil {
+			return fmt.Errorf("failed to patch toc version: %w", err)
+		}
+		version = tag
 	}
 
 	zipName := zipFileName(name, version)
@@ -48,25 +57,54 @@ func Run(ctx *common.Context, src, dst string) error {
 	return nil
 }
 
-func addonInfo(src string) (name, version string, err error) {
+func addonInfo(src string) (name, version, tocPath string, err error) {
 	entries, err := os.ReadDir(src)
 	if err != nil {
-		return "", "", fmt.Errorf("failed to read source directory: %w", err)
+		return "", "", "", fmt.Errorf("failed to read source directory: %w", err)
 	}
 
 	for _, entry := range entries {
 		if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".toc") {
 			name = strings.TrimSuffix(entry.Name(), ".toc")
-			tocPath := filepath.Join(src, entry.Name())
+			tocPath = filepath.Join(src, entry.Name())
 			version, err = parseTocVersion(tocPath)
 			if err != nil {
-				return "", "", err
+				return "", "", "", err
 			}
-			return name, version, nil
+			return name, version, tocPath, nil
 		}
 	}
 
-	return "", "", fmt.Errorf("no .toc file found in %s", src)
+	return "", "", "", fmt.Errorf("no .toc file found in %s", src)
+}
+
+func patchTocVersion(tocPath, version string) error {
+	data, err := os.ReadFile(tocPath)
+	if err != nil {
+		return err
+	}
+
+	replaced := false
+	scanner := bufio.NewScanner(bytes.NewReader(data))
+	var buf bytes.Buffer
+	for scanner.Scan() {
+		line := scanner.Text()
+		if strings.HasPrefix(line, "## Version:") && !replaced {
+			fmt.Fprintf(&buf, "## Version: %s\n", version)
+			replaced = true
+		} else {
+			fmt.Fprintln(&buf, line)
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		return err
+	}
+
+	if !replaced {
+		return fmt.Errorf("## Version: not found in %s", tocPath)
+	}
+
+	return os.WriteFile(tocPath, buf.Bytes(), 0644)
 }
 
 func parseTocVersion(path string) (string, error) {
