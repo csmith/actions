@@ -87,7 +87,9 @@ func Run(ctx *common.Context, apiToken, projectID, path, changelogFile string) e
 		slog.Info("Matched game version", "id", v.ID, "name", v.Name, "apiVersion", v.APIVersion)
 	}
 
-	if err := upload(apiToken, projectID, version, changelogStr, versionIDs, versionNames, filePath); err != nil {
+	displayName := filepath.Base(filePath)
+
+	if err := upload(apiToken, projectID, displayName, changelogStr, versionIDs, versionNames, filePath); err != nil {
 		return fmt.Errorf("failed to upload: %w", err)
 	}
 
@@ -216,11 +218,11 @@ func matchVersions(versions []gameVersion, interfaceVersions []string) []gameVer
 	return matched
 }
 
-func upload(apiToken, projectID, version, changelog string, gameVersionIDs []int, gameVersionNames []string, filePath string) error {
+func upload(apiToken, projectID, displayName, changelog string, gameVersionIDs []int, gameVersionNames []string, filePath string) error {
 	meta := metadata{
 		Changelog:                changelog,
 		ChangelogType:            "markdown",
-		DisplayName:              version,
+		DisplayName:              displayName,
 		GameVersions:             gameVersionIDs,
 		GameVersionNames:         gameVersionNames,
 		ReleaseType:              "release",
