@@ -60,3 +60,9 @@ jobs:
     runs-on: docker
     with:
       dockerfile: setupgo/Dockerfile
+
+  curseforge:
+    uses: meta/workflows/.forgejo/workflows/image-test.yml@master
+    runs-on: docker
+    with:
+      dockerfile: curseforge/Dockerfile

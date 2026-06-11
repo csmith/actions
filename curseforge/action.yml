@@ -1,0 +1,30 @@
+name: 'CurseForge Upload'
+description: 'Upload an addon zip file to CurseForge'
+runs:
+  using: 'docker'
+  image: 'docker://git.yak-wall.ts.net/public/actions/curseforge:dev'
+  args:
+    - -project-id=${{ inputs.project-id }}
+    - -path=${{ inputs.path }}
+    - -changelog=${{ inputs.changelog }}
+    - -debug=${{ inputs.debug }}
+  env:
+    API_TOKEN: ${{ inputs.api-token }}
+inputs:
+  api-token:
+    description: 'CurseForge API token'
+    required: true
+  project-id:
+    description: 'CurseForge project ID'
+    required: true
+  path:
+    description: 'Path to the zip file to upload (supports glob patterns)'
+    required: true
+  debug:
+    description: 'Enable debug logging'
+    required: false
+    default: 'false'
+  changelog:
+    description: 'Path to a changelog file to include with the upload'
+    required: false
+    default: 'src/CHANGELOG.md'
