@@ -29,7 +29,10 @@ func Run(ctx *common.Context, repo, filename, token, assets string) error {
 
 	owner, name, _ := strings.Cut(repo, "/")
 
-	client := github.NewClient(http.DefaultClient).WithAuthToken(token)
+	client, err := github.NewClient(github.WithHTTPClient(http.DefaultClient), github.WithAuthToken(token))
+	if err != nil {
+		return fmt.Errorf("failed to create GitHub client: %w", err)
+	}
 	rel, _, err := client.Repositories.CreateRelease(context.Background(), owner, name, &github.RepositoryRelease{
 		TagName:    github.Ptr(tag),
 		Name:       github.Ptr(strings.TrimPrefix(tag, "v")),
