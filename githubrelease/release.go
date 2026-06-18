@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"chameth.com/actions/common"
-	"github.com/google/go-github/v87/github"
+	"github.com/google/go-github/v88/github"
 )
 
 func Run(ctx *common.Context, repo, filename, token, assets string) error {
