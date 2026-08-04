@@ -33,8 +33,8 @@ func Run(ctx *common.Context, repo, filename, token, assets string) error {
 	if err != nil {
 		return fmt.Errorf("failed to create GitHub client: %w", err)
 	}
-	rel, _, err := client.Repositories.CreateRelease(context.Background(), owner, name, &github.RepositoryRelease{
-		TagName:    github.Ptr(tag),
+	rel, _, err := client.Repositories.CreateRelease(context.Background(), owner, name, github.CreateReleaseRequest{
+		TagName:    tag,
 		Name:       github.Ptr(strings.TrimPrefix(tag, "v")),
 		Body:       github.Ptr(body),
 		MakeLatest: github.Ptr("legacy"),
@@ -44,7 +44,7 @@ func Run(ctx *common.Context, repo, filename, token, assets string) error {
 		return fmt.Errorf("failed to create release: %w", err)
 	}
 
-	slog.Info("Created GitHub release", "url", *rel.HTMLURL, "version", tag)
+	slog.Info("Created GitHub release", "url", rel.HTMLURL, "version", tag)
 
 	if assets != "" {
 		if err := uploadAssets(ctx, client, owner, name, rel.GetID(), assets); err != nil {
