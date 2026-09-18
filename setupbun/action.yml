@@ -1,0 +1,17 @@
+name: 'Setup Bun'
+description: 'Set up a Bun installation in the workspace'
+runs:
+  using: 'docker'
+  image: 'docker://git.yak-wall.ts.net/public/actions/setupbun:dev'
+  args:
+    - -target=${{ inputs.target }}
+    - -debug=${{ inputs.debug }}
+inputs:
+  target:
+    description: 'Directory to install Bun into (relative to workspace)'
+    required: false
+    default: 'tools/bun'
+  debug:
+    description: 'Enable debug logging'
+    required: false
+    default: 'false'

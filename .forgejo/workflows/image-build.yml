@@ -83,6 +83,14 @@ jobs:
       dockerfile: setupgo/Dockerfile
       image: public/actions/setupgo
 
+  setupbun:
+    uses: meta/workflows/.forgejo/workflows/image-build.yml@master
+    runs-on: docker
+    secrets: inherit
+    with:
+      dockerfile: setupbun/Dockerfile
+      image: public/actions/setupbun
+
   curseforge:
     uses: meta/workflows/.forgejo/workflows/image-build.yml@master
     runs-on: docker
