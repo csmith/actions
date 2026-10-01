@@ -1,6 +1,6 @@
 module chameth.com/actions
 
-go 1.25.6
+go 1.26.0
 
 require github.com/csmith/gitrefs v1.6.0
 
@@ -10,7 +10,7 @@ require (
 )
 
 require (
-	github.com/google/go-github/v90 v90.0.0
+	github.com/google/go-github/v91 v91.0.0
 	github.com/hashicorp/go-version v1.9.0
 	github.com/stretchr/testify v1.12.1
 )
