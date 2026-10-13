@@ -10,7 +10,7 @@ require (
 )
 
 require (
-	github.com/google/go-github/v91 v91.0.0
+	github.com/google/go-github/v92 v92.0.0
 	github.com/hashicorp/go-version v1.9.0
 	github.com/stretchr/testify v1.12.1
 )
