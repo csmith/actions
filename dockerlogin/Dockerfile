@@ -5,7 +5,7 @@ COPY . .
 
 RUN --mount=type=cache,target=/go/pkg/mod go build -o /action ./dockerlogin/cmd;
 
-FROM quay.io/buildah/stable:v1.43.1
+FROM quay.io/buildah/stable:v1.43.2
 
 COPY --from=build /action /action
 
