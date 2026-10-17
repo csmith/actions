@@ -5,7 +5,7 @@ COPY . .
 
 RUN --mount=type=cache,target=/go/pkg/mod CGO_ENABLED=0 go build -o /action ./wowinterface/cmd;
 
-FROM alpine:3.24.1
+FROM alpine:3.24.2
 
 RUN apk add --no-cache ca-certificates
 COPY --from=build /action /action

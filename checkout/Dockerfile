@@ -5,7 +5,7 @@ COPY . .
 
 RUN --mount=type=cache,target=/go/pkg/mod go build -o /action ./checkout/cmd;
 
-FROM alpine:3.24.1
+FROM alpine:3.24.2
 
 RUN apk add --no-cache git
 COPY --from=build /action /action
