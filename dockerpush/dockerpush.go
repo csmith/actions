@@ -35,6 +35,7 @@ func Run(ctx *common.Context, archive, name, tags, authfile string) error {
 
 		args := []string{
 			"copy",
+			"--all",
 		}
 
 		if authfile != "" {

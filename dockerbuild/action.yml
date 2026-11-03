@@ -8,6 +8,7 @@ runs:
     - -context=${{ inputs.context }}
     - -target=${{ inputs.target }}
     - -authfile=${{ inputs.authfile }}
+    - -platforms=${{ inputs.platforms }}
     - -debug=${{ inputs.debug }}
 inputs:
   dockerfile:
@@ -26,6 +27,10 @@ inputs:
     description: 'Path to authentication file'
     required: false
     default: '.registry-auth.json'
+  platforms:
+    description: 'Comma-separated list of platforms to build for'
+    required: false
+    default: 'linux/amd64'
   debug:
     description: 'Enable debug logging'
     required: false
