@@ -8,7 +8,6 @@ runs:
     - -context=${{ inputs.context }}
     - -target=${{ inputs.target }}
     - -authfile=${{ inputs.authfile }}
-    - -platforms=${{ inputs.platforms }}
     - -debug=${{ inputs.debug }}
 inputs:
   dockerfile:
