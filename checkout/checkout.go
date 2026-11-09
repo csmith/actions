@@ -1,6 +1,7 @@
 package checkout
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"os"
@@ -22,20 +23,21 @@ func Run(ctx *common.Context, path string, fetchTags bool) error {
 	}
 
 	slog.Debug("Cloning repository", "url", ctx.RepoUrl())
-	cmd := exec.Command("git", "-c", fmt.Sprintf("http.extraHeader=Authorization: basic %s", ctx.BasicAuth()), "clone", ctx.RepoUrl(), ".")
+	authHeader := "http.extraHeader=Authorization: basic " + ctx.BasicAuth()
+	cmd := exec.CommandContext(context.Background(), "git", "-c", authHeader, "clone", ctx.RepoUrl(), ".")
 	if output, err := cmd.CombinedOutput(); err != nil {
 		return fmt.Errorf("git clone failed: %w\n%s", err, output)
 	}
 
 	slog.Debug("Checking out SHA", "sha", ctx.SHA)
-	cmd = exec.Command("git", "checkout", ctx.SHA)
+	cmd = exec.CommandContext(context.Background(), "git", "checkout", ctx.SHA)
 	if output, err := cmd.CombinedOutput(); err != nil {
 		return fmt.Errorf("git checkout failed: %w\n%s", err, output)
 	}
 
 	if fetchTags {
 		slog.Debug("Fetching tags")
-		cmd = exec.Command("git", "-c", fmt.Sprintf("http.extraHeader=Authorization: basic %s", ctx.BasicAuth()), "fetch", "--tags")
+		cmd = exec.CommandContext(context.Background(), "git", "-c", authHeader, "fetch", "--tags")
 		if output, err := cmd.CombinedOutput(); err != nil {
 			return fmt.Errorf("git fetch --tags failed: %w\n%s", err, output)
 		}

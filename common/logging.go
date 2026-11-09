@@ -10,9 +10,5 @@ func ConfigureLogging(debug bool) {
 	if debug {
 		level = slog.LevelDebug
 	}
-	handler := slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
-		Level: level,
-	})
-	logger := slog.New(handler)
-	slog.SetDefault(logger)
+	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: level})))
 }

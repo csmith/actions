@@ -4,7 +4,9 @@ import (
 	"archive/zip"
 	"bufio"
 	"bytes"
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -36,8 +38,7 @@ type metadata struct {
 }
 
 func Run(ctx *common.Context, apiToken, projectID, path, changelogFile string) error {
-	resolved := ctx.ResolvePath(path)
-	matches, err := filepath.Glob(resolved)
+	matches, err := filepath.Glob(ctx.ResolvePath(path))
 	if err != nil {
 		return fmt.Errorf("invalid glob pattern %q: %w", path, err)
 	}
@@ -102,7 +103,7 @@ func extractVersion(path string) (string, error) {
 	name = strings.TrimSuffix(name, ".zip")
 	idx := strings.LastIndex(name, "-")
 	if idx < 0 {
-		return "", fmt.Errorf("cannot extract version from filename %q: expected modname-version.zip format", filepath.Base(path))
+		return "", fmt.Errorf("cannot extract version from filename %q: expected modname-version.zip", filepath.Base(path))
 	}
 	return name[idx+1:], nil
 }
@@ -114,68 +115,82 @@ func extractInterfaceFromZip(zipPath string) ([]string, error) {
 	}
 	defer r.Close()
 
-	var topLevelFolder string
-	for _, f := range r.File {
-		if !f.FileInfo().IsDir() {
-			parts := strings.SplitN(f.Name, "/", 2)
-			if len(parts) < 2 {
-				continue
-			}
-			candidate := parts[0]
-			if topLevelFolder == "" {
-				topLevelFolder = candidate
-			} else if candidate != topLevelFolder {
-				return nil, fmt.Errorf("zip contains multiple top-level folders (%q and %q), expected exactly one", topLevelFolder, candidate)
-			}
-		}
-	}
-
-	if topLevelFolder == "" {
-		return nil, fmt.Errorf("zip appears to be empty")
+	topLevelFolder, err := zipTopLevelFolder(r.File)
+	if err != nil {
+		return nil, err
 	}
 
 	tocName := topLevelFolder + "/" + topLevelFolder + ".toc"
 	for _, f := range r.File {
-		if f.Name != tocName {
-			continue
+		if f.Name == tocName {
+			return readTocInterface(f)
 		}
-
-		rc, err := f.Open()
-		if err != nil {
-			return nil, fmt.Errorf("failed to open %s in zip: %w", f.Name, err)
-		}
-		defer rc.Close()
-
-		scanner := bufio.NewScanner(rc)
-		for scanner.Scan() {
-			line := strings.TrimSpace(scanner.Text())
-			if after, ok := strings.CutPrefix(line, "## Interface:"); ok {
-				raw := strings.TrimSpace(after)
-				var versions []string
-				for v := range strings.SplitSeq(raw, ",") {
-					v = strings.TrimSpace(v)
-					if v != "" {
-						versions = append(versions, v)
-					}
-				}
-				if len(versions) == 0 {
-					return nil, fmt.Errorf("## Interface: found in %s but no valid versions", f.Name)
-				}
-				return versions, nil
-			}
-		}
-		if err := scanner.Err(); err != nil {
-			return nil, fmt.Errorf("failed to read %s: %w", f.Name, err)
-		}
-
-		return nil, fmt.Errorf("## Interface: not found in %s", f.Name)
 	}
 
 	return nil, fmt.Errorf("expected toc file %s not found in zip", tocName)
 }
 
+func zipTopLevelFolder(files []*zip.File) (string, error) {
+	var topLevelFolder string
+	for _, f := range files {
+		if f.FileInfo().IsDir() {
+			continue
+		}
+		candidate, _, ok := strings.Cut(f.Name, "/")
+		if !ok {
+			continue
+		}
+		if topLevelFolder == "" {
+			topLevelFolder = candidate
+		} else if candidate != topLevelFolder {
+			return "", fmt.Errorf("zip contains multiple top-level folders (%q and %q)", topLevelFolder, candidate)
+		}
+	}
+
+	if topLevelFolder == "" {
+		return "", errors.New("zip appears to be empty")
+	}
+	return topLevelFolder, nil
+}
+
+func readTocInterface(f *zip.File) ([]string, error) {
+	rc, err := f.Open()
+	if err != nil {
+		return nil, fmt.Errorf("failed to open %s in zip: %w", f.Name, err)
+	}
+	defer rc.Close()
+
+	scanner := bufio.NewScanner(rc)
+	for scanner.Scan() {
+		after, ok := strings.CutPrefix(strings.TrimSpace(scanner.Text()), "## Interface:")
+		if !ok {
+			continue
+		}
+		var versions []string
+		for v := range strings.SplitSeq(after, ",") {
+			if v = strings.TrimSpace(v); v != "" {
+				versions = append(versions, v)
+			}
+		}
+		if len(versions) == 0 {
+			return nil, fmt.Errorf("## Interface: found in %s but no valid versions", f.Name)
+		}
+		return versions, nil
+	}
+	if err := scanner.Err(); err != nil {
+		return nil, fmt.Errorf("failed to read %s: %w", f.Name, err)
+	}
+
+	return nil, fmt.Errorf("## Interface: not found in %s", f.Name)
+}
+
 func fetchGameVersions(apiToken string) ([]gameVersion, error) {
-	req, err := http.NewRequest("GET", "https://wow.curseforge.com/api/game/versions", nil)
+	req, err := http.NewRequestWithContext(
+		context.Background(),
+		http.MethodGet,
+		"https://wow.curseforge.com/api/game/versions",
+		nil,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -218,18 +233,23 @@ func matchVersions(versions []gameVersion, interfaceVersions []string) []gameVer
 	return matched
 }
 
-func upload(apiToken, projectID, displayName, changelog string, gameVersionIDs []int, gameVersionNames []string, filePath string) error {
-	meta := metadata{
-		Changelog:                changelog,
-		ChangelogType:            "markdown",
-		DisplayName:              displayName,
-		GameVersions:             gameVersionIDs,
-		GameVersionNames:         gameVersionNames,
-		ReleaseType:              "release",
-		IsMarkedForManualRelease: false,
-	}
-
-	metaJSON, err := json.Marshal(meta)
+func upload(
+	apiToken, projectID, displayName, changelog string,
+	gameVersionIDs []int,
+	gameVersionNames []string,
+	filePath string,
+) error {
+	metaJSON, err := json.Marshal(
+		metadata{
+			Changelog:                changelog,
+			ChangelogType:            "markdown",
+			DisplayName:              displayName,
+			GameVersions:             gameVersionIDs,
+			GameVersionNames:         gameVersionNames,
+			ReleaseType:              "release",
+			IsMarkedForManualRelease: false,
+		},
+	)
 	if err != nil {
 		return fmt.Errorf("failed to marshal metadata: %w", err)
 	}
@@ -260,8 +280,12 @@ func upload(apiToken, projectID, displayName, changelog string, gameVersionIDs [
 		return fmt.Errorf("failed to close multipart writer: %w", err)
 	}
 
-	url := fmt.Sprintf("https://wow.curseforge.com/api/projects/%s/upload-file", projectID)
-	req, err := http.NewRequest("POST", url, &buf)
+	req, err := http.NewRequestWithContext(
+		context.Background(),
+		http.MethodPost,
+		"https://wow.curseforge.com/api/projects/"+projectID+"/upload-file",
+		&buf,
+	)
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
 	}

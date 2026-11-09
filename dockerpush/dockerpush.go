@@ -1,6 +1,8 @@
 package dockerpush
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"os"
@@ -12,7 +14,7 @@ import (
 
 func Run(ctx *common.Context, archive, name, tags, authfile string) error {
 	if tags == "" {
-		return fmt.Errorf("tags cannot be empty")
+		return errors.New("tags cannot be empty")
 	}
 
 	tagList := strings.Split(tags, ",")
@@ -20,11 +22,12 @@ func Run(ctx *common.Context, archive, name, tags, authfile string) error {
 		tagList[i] = strings.TrimSpace(tag)
 	}
 
-	slog.Info("Pushing image",
-		"archive", archive,
-		"image_name", name,
-		"tags", strings.Join(tagList, ","),
-		"authfile", authfile != "",
+	slog.Info(
+		"Pushing image",
+		slog.String("archive", archive),
+		slog.String("image_name", name),
+		slog.String("tags", strings.Join(tagList, ",")),
+		slog.Bool("authfile", authfile != ""),
 	)
 
 	resolvedArchive := ctx.ResolvePath(archive)
@@ -42,9 +45,9 @@ func Run(ctx *common.Context, archive, name, tags, authfile string) error {
 			args = append(args, "--authfile", ctx.ResolvePath(authfile))
 		}
 
-		args = append(args, fmt.Sprintf("oci-archive:%s", resolvedArchive), fmt.Sprintf("docker://%s", target))
+		args = append(args, "oci-archive:"+resolvedArchive, "docker://"+target)
 
-		cmd := exec.Command("skopeo", args...)
+		cmd := exec.CommandContext(context.Background(), "skopeo", args...)
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 

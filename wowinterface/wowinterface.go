@@ -2,6 +2,7 @@ package wowinterface
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"log/slog"
@@ -15,8 +16,7 @@ import (
 )
 
 func Run(ctx *common.Context, apiKey, addonID, path, changelogFile string) error {
-	resolved := ctx.ResolvePath(path)
-	matches, err := filepath.Glob(resolved)
+	matches, err := filepath.Glob(ctx.ResolvePath(path))
 	if err != nil {
 		return fmt.Errorf("invalid glob pattern %q: %w", path, err)
 	}
@@ -54,7 +54,7 @@ func extractVersion(path string) (string, error) {
 	name = strings.TrimSuffix(name, ".zip")
 	idx := strings.LastIndex(name, "-")
 	if idx < 0 {
-		return "", fmt.Errorf("cannot extract version from filename %q: expected modname-version.zip format", filepath.Base(path))
+		return "", fmt.Errorf("cannot extract version from filename %q: expected modname-version.zip", filepath.Base(path))
 	}
 	return name[idx+1:], nil
 }
@@ -96,13 +96,18 @@ func upload(apiKey, addonID, version, filePath, changelog string) error {
 		return fmt.Errorf("failed to close multipart writer: %w", err)
 	}
 
-	req, err := http.NewRequest("POST", "https://api.wowinterface.com/addons/update", &buf)
+	req, err := http.NewRequestWithContext(
+		context.Background(),
+		http.MethodPost,
+		"https://api.wowinterface.com/addons/update",
+		&buf,
+	)
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
 	}
 
 	req.Header.Set("Content-Type", w.FormDataContentType())
-	req.Header.Set("x-api-token", apiKey)
+	req.Header.Set("X-Api-Token", apiKey)
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {

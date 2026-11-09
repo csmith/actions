@@ -5,6 +5,7 @@ import (
 	"iter"
 	"log/slog"
 	"maps"
+	"strconv"
 	"strings"
 
 	"chameth.com/actions/common"
@@ -38,6 +39,9 @@ func tags(ctx *common.Context) ([]string, error) {
 		tag := strings.TrimPrefix(after, "v")
 		slog.Debug("Processing version tag", "tag", tag)
 		targetVersion, err := version.NewVersion(tag)
+		if err != nil {
+			return nil, fmt.Errorf("tag %q is not a valid version: %w", after, err)
+		}
 
 		tags, err := gitrefs.Fetch(ctx.RepoUrl(), gitrefs.WithAuth("x-access-token", ctx.Token), gitrefs.TagsOnly())
 		if err != nil {
@@ -69,7 +73,12 @@ func parseVersions(input iter.Seq[string]) []*version.Version {
 
 func resolve(targetVersion *version.Version, availableVersions []*version.Version) []string {
 	if targetVersion.Metadata() != "" || targetVersion.Prerelease() != "" {
-		slog.Info("Tagged version is not ordinary release, just using tag directly", "version", targetVersion.Original(), "metadata", targetVersion.Metadata(), "prerelease", targetVersion.Prerelease())
+		slog.Info(
+			"Tagged version is not ordinary release, just using tag directly",
+			slog.String("version", targetVersion.Original()),
+			slog.String("metadata", targetVersion.Metadata()),
+			slog.String("prerelease", targetVersion.Prerelease()),
+		)
 		return []string{targetVersion.String()}
 	}
 
@@ -98,7 +107,7 @@ func resolve(targetVersion *version.Version, availableVersions []*version.Versio
 		res = append(res, fmt.Sprintf("%d.%d", targetSegments[0], targetSegments[1]))
 
 		if !hasNewerMinor {
-			res = append(res, fmt.Sprintf("%d", targetSegments[0]))
+			res = append(res, strconv.Itoa(targetSegments[0]))
 
 			if !hasNewerMajor {
 				res = append(res, "latest")

@@ -42,12 +42,17 @@ func Run(ctx *common.Context, repo, filename, token, assets string) error {
 		return err
 	}
 
-	rel, _, err := client.Repositories.CreateRelease(context.Background(), owner, name, github.CreateReleaseRequest{
-		TagName:    tag,
-		Name:       github.Ptr(strings.TrimPrefix(tag, "v")),
-		Body:       github.Ptr(body),
-		MakeLatest: github.Ptr("legacy"),
-	})
+	rel, _, err := client.Repositories.CreateRelease(
+		context.Background(),
+		owner,
+		name,
+		github.CreateReleaseRequest{
+			TagName:    tag,
+			Name:       github.Ptr(strings.TrimPrefix(tag, "v")),
+			Body:       github.Ptr(body),
+			MakeLatest: github.Ptr("legacy"),
+		},
+	)
 
 	if err != nil {
 		return fmt.Errorf("failed to create release: %w", err)
@@ -161,7 +166,13 @@ func tagCommit(ctx context.Context, client *github.Client, owner, repo, tag stri
 	return obj.GetSHA(), nil
 }
 
-func uploadAssets(ctx *common.Context, client *github.Client, owner, repo string, releaseID int64, assets string) error {
+func uploadAssets(
+	ctx *common.Context,
+	client *github.Client,
+	owner, repo string,
+	releaseID int64,
+	assets string,
+) error {
 	patterns := strings.SplitSeq(assets, ",")
 	for pattern := range patterns {
 		pattern = strings.TrimSpace(pattern)
@@ -169,8 +180,7 @@ func uploadAssets(ctx *common.Context, client *github.Client, owner, repo string
 			continue
 		}
 
-		resolved := ctx.ResolvePath(pattern)
-		matches, err := filepath.Glob(resolved)
+		matches, err := filepath.Glob(ctx.ResolvePath(pattern))
 		if err != nil {
 			return fmt.Errorf("invalid glob pattern %q: %w", pattern, err)
 		}

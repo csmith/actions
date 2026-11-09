@@ -3,6 +3,7 @@ package common
 import (
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"os"
@@ -111,7 +112,7 @@ func ContextFromEnv() (*Context, error) {
 	if _, hasGitHubJob := os.LookupEnv("GITHUB_JOB"); hasGitHubJob {
 		return contextFromEnv("GITHUB")
 	}
-	return nil, fmt.Errorf("unable to determine forge: neither FORGEJO_JOB nor GITHUB_JOB set")
+	return nil, errors.New("unable to determine forge: neither FORGEJO_JOB nor GITHUB_JOB set")
 }
 
 func contextFromEnv(prefix string) (*Context, error) {

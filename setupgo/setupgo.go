@@ -1,6 +1,7 @@
 package setupgo
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"os"
@@ -20,7 +21,7 @@ func Run(ctx *common.Context, targetDir string, gopath string) error {
 	}
 
 	slog.Info("Copying Go installation", "src", "/usr/local/go", "dst", resolvedTarget)
-	cmd := exec.Command("cp", "-a", "/usr/local/go/.", resolvedTarget)
+	cmd := exec.CommandContext(context.Background(), "cp", "-a", "/usr/local/go/.", resolvedTarget)
 	if output, err := cmd.CombinedOutput(); err != nil {
 		return fmt.Errorf("failed to copy Go installation: %w\n%s", err, output)
 	}

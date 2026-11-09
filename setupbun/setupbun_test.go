@@ -27,7 +27,7 @@ func TestInstall(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotZero(t, info.Mode()&0111, "installed binary should be executable")
 
-	output, err := exec.Command(installedPath, "test").CombinedOutput()
+	output, err := exec.CommandContext(t.Context(), installedPath, "test").CombinedOutput()
 	require.NoError(t, err)
 	assert.Equal(t, "bun-fixture test\n", string(output))
 
@@ -36,7 +36,7 @@ func TestInstall(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "bun", linkTarget)
 
-	output, err = exec.Command(aliasPath, "install").CombinedOutput()
+	output, err = exec.CommandContext(t.Context(), aliasPath, "install").CombinedOutput()
 	require.NoError(t, err)
 	assert.Equal(t, "bun-fixture install\n", string(output))
 
@@ -54,7 +54,10 @@ func TestInstallIsIdempotent(t *testing.T) {
 	require.NoError(t, install(ctx, "tools/bun", source))
 	require.NoError(t, install(ctx, "tools/bun", source))
 
-	output, err := exec.Command(filepath.Join(workspace, "tools", "bun", "bin", "bunx")).CombinedOutput()
+	output, err := exec.CommandContext(
+		t.Context(),
+		filepath.Join(workspace, "tools", "bun", "bin", "bunx"),
+	).CombinedOutput()
 	require.NoError(t, err)
 	assert.Equal(t, "bun-fixture\n", string(output))
 }
@@ -62,11 +65,9 @@ func TestInstallIsIdempotent(t *testing.T) {
 func TestInstallMissingSource(t *testing.T) {
 	ctx, workspace := newTestContext(t)
 
-	source := filepath.Join(t.TempDir(), "missing")
+	err := install(ctx, "tools/bun", filepath.Join(t.TempDir(), "missing"))
 
-	err := install(ctx, "tools/bun", source)
-
-	assert.ErrorContains(t, err, "failed to copy Bun binary")
+	require.ErrorContains(t, err, "failed to copy Bun binary")
 
 	_, statErr := os.Stat(filepath.Join(workspace, "tools", "bun", "bin", "bun"))
 	assert.True(t, os.IsNotExist(statErr), "binary should not be installed")

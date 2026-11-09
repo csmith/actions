@@ -32,8 +32,7 @@ func Run(ctx *common.Context, src, dst string) error {
 		version = tag
 	}
 
-	zipName := zipFileName(name, version)
-	zipPath := filepath.Join(dstPath, zipName)
+	zipPath := filepath.Join(dstPath, zipFileName(name, version))
 
 	if err := os.MkdirAll(dstPath, 0755); err != nil {
 		return fmt.Errorf("failed to create destination directory: %w", err)
@@ -131,42 +130,45 @@ func zipFileName(name, tag string) string {
 	if tag != "" {
 		return fmt.Sprintf("%s-%s.zip", name, tag)
 	}
-	return fmt.Sprintf("%s.zip", name)
+	return name + ".zip"
 }
 
 func addFiles(w *zip.Writer, src, prefix string) (int, error) {
 	count := 0
-	err := filepath.WalkDir(src, func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-
-		if strings.HasPrefix(d.Name(), ".") {
-			if d.IsDir() {
-				return filepath.SkipDir
+	err := filepath.WalkDir(
+		src,
+		func(path string, d fs.DirEntry, err error) error {
+			if err != nil {
+				return err
 			}
+
+			if strings.HasPrefix(d.Name(), ".") {
+				if d.IsDir() {
+					return filepath.SkipDir
+				}
+				return nil
+			}
+
+			if d.IsDir() {
+				return nil
+			}
+
+			rel, err := filepath.Rel(src, path)
+			if err != nil {
+				return err
+			}
+
+			zipPath := filepath.Join(prefix, rel)
+			slog.Debug("Adding file", "source", path, "zip", zipPath)
+
+			if err := addFile(w, path, zipPath); err != nil {
+				return err
+			}
+
+			count++
 			return nil
-		}
-
-		if d.IsDir() {
-			return nil
-		}
-
-		rel, err := filepath.Rel(src, path)
-		if err != nil {
-			return err
-		}
-
-		zipPath := filepath.Join(prefix, rel)
-		slog.Debug("Adding file", "source", path, "zip", zipPath)
-
-		if err := addFile(w, path, zipPath); err != nil {
-			return err
-		}
-
-		count++
-		return nil
-	})
+		},
+	)
 	return count, err
 }
 

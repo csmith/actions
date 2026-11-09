@@ -64,16 +64,19 @@ func TestParseVersions(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result := parseVersions(slices.Values(tt.input))
+		t.Run(
+			tt.name,
+			func(t *testing.T) {
+				result := parseVersions(slices.Values(tt.input))
 
-			actual := make([]string, len(result))
-			for i, v := range result {
-				actual[i] = v.Original()
-			}
+				actual := make([]string, len(result))
+				for i, v := range result {
+					actual[i] = v.Original()
+				}
 
-			assert.Equal(t, tt.expected, actual)
-		})
+				assert.Equal(t, tt.expected, actual)
+			},
+		)
 	}
 }
 
@@ -177,15 +180,17 @@ func TestResolve(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			target := version.Must(version.NewVersion(tt.targetVersion))
-			available := make([]*version.Version, len(tt.availableVersions))
-			for i, v := range tt.availableVersions {
-				available[i] = version.Must(version.NewVersion(v))
-			}
+		t.Run(
+			tt.name,
+			func(t *testing.T) {
+				target := version.Must(version.NewVersion(tt.targetVersion))
+				available := make([]*version.Version, len(tt.availableVersions))
+				for i, v := range tt.availableVersions {
+					available[i] = version.Must(version.NewVersion(v))
+				}
 
-			result := resolve(target, available)
-			assert.Equal(t, tt.expected, result)
-		})
+				assert.Equal(t, tt.expected, resolve(target, available))
+			},
+		)
 	}
 }
