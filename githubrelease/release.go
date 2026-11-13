@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"chameth.com/actions/common"
-	"github.com/google/go-github/v92/github"
+	"github.com/google/go-github/v93/github"
 )
 
 func Run(ctx *common.Context, repo, filename, token, assets string) error {
