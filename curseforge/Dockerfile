@@ -5,7 +5,7 @@ COPY . .
 
 RUN --mount=type=cache,target=/go/pkg/mod CGO_ENABLED=0 go build -o /action ./curseforge/cmd;
 
-FROM alpine:3.24.2
+FROM alpine:3.24.3
 
 RUN apk add --no-cache ca-certificates
 COPY --from=build /action /action
